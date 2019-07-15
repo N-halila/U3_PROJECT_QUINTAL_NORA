@@ -1,0 +1,40 @@
+Explanation of our robot:
+%%Robot has 2 distance sensors in the front, one at the right and one at the left side, with a 5 degree of deviation towards the outside.
+For this instrucction we just had to calculate the angle of the sensors because webots do not accept degrees, it just accepts radians
+so we know that 360° is equal to 2pi*radians so we just have to multiply the 5° for 2pi and then divided by 360°
+%%Sensors and motors should be the same as from the project u2_exam.
+For this instrucction i had already calculated everything so im just going to mention that we have for the Rotational motor
+a Max velocity that was 290 rpm that we had to converted to rad/seconds so we obtain 30.36873rad/seconds, and we also have a Max Torque that was 120oz*in that we converter to 0.84738421N/m. Then we have to calculate the resolution of our encoder and in the datasheet says that we have 1632.67 counts per revolution so we divide 2pi/1632.67 that was the counts per revolution and we obtain 0.0038484 and this is our value for the resolution of our Position sensor. For the Distance sensor we have to check the lookup table that in our case the first three values was 0 and then the x value of the second rows was 0.2 that belong to the meters and then 65535 that belongs to the resolution and the last one 0.
+%%Robot should have two operational modes: 1) Manual, and 2) Autonomous.
+In this case i implement a code similar that the professor teach us in class 
+%%User should use the keyboard to move the robot:
+
+  %%`'Left Arrow' key to move linearly to the left at 0.3 m/s
+  %%'Right Arrow' key to move linearly to the right at 0.3 m/s
+  %%'Up Arrow' key to move forward linearly at 0.3 m/s
+  %%'Down Arrow' key to move backward linearly at 0.3 m/s
+in the case of this it was a little complicated to implement because i had to understand that the linear velocity is not the same as the angular velocity and that the first one depends of the second one knowing this i can find a formula in internet to clear the formula of the linear velocity wich was v= angular velocity * radio of the wheel(in our case), so i just clear and at the end i have angular velocity is equal to linear velocity/ radio, in numbers it was (0.3m/s)/(0.05m)= 6rad/seconds
+%%'A' key to turn the robot left at 45 degrees/s
+%%'S' key to turn the robot right at 45 degrees/s
+%%'G' key to start Autonomous Mode for the robot
+%%'W' key to start Manual Mode
+for this case i have to implement the formula that we use in the first part that was multiply the 45°*2pi and then divided by 360° but i learn that webots is not really precise so i have to modify a little bit the values.
+
+%%The robot should start in Autonomous Mode
+This was the complicated part because of the code and the high level functions that we have to use, so i have to look in many websites until i find some similar code as the teacher show us, and i have to take some extra classes for coding this project.
+
+%%Autonomous mode follows the next routine:
+
+  %%Moves forward continuously at 0.4 m/s\
+  %%If detects an obstacle stops and keep turning
+  %%If obstacle is more near to the right, robot turns left
+  %%If obstacle is more near to the left, robot turns right
+  %%Webots world should be designed in such a way that all functionalities can be showed by just starting the simulation.
+
+For this part i just calculate with the same formula of angular velocity and i obtain 8 radians/seconds, that is what i implement there
+
+For the design of the project i try to adapt the previous robot that i made but the situation here was that i had not the size for the implementation of the 10 cm between the distance sensor, so considering that the code took the whole weekend and some extra hours of other days I saw myself in need to implement the robot that i already had despite to the distance sensors could not be flying over the robot.
+I expect being improving in the following projects, i'll hope this project will be enough to approve this unit.
+Thank you.
+
+
