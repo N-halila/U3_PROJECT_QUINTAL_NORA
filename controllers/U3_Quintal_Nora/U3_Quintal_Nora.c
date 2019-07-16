@@ -47,49 +47,50 @@ int checkForObstacles(WbDeviceTag dis_S) {
   else 
     return Obstacle;   
 }
-
+//////Functions for the robot
+/////avanzar
 void goRobot(WbDeviceTag *wheels, double velocity) {
   wb_motor_set_velocity(wheels[0], 0);
   wb_motor_set_velocity(wheels[1], velocity);
   wb_motor_set_velocity(wheels[2], -velocity);
 }
-
+//retroceder
 void backRobot(WbDeviceTag *wheels) {
   wb_motor_set_velocity(wheels[0], 0);
   wb_motor_set_velocity(wheels[1], -6);
   wb_motor_set_velocity(wheels[2], 6);
 }
-
+///izquierda
 void leftRobot(WbDeviceTag *wheels) {
   wb_motor_set_velocity(wheels[0],-6);
   wb_motor_set_velocity(wheels[1], 0);
   wb_motor_set_velocity(wheels[2], 6);
 }
-
+////derecha
 void rightRobot(WbDeviceTag *wheels) {
   wb_motor_set_velocity(wheels[0], 6);
   wb_motor_set_velocity(wheels[1], 0);
   wb_motor_set_velocity(wheels[2],-6);
 }
-
+///detener
 void stopRobot(WbDeviceTag *wheels) {
   wb_motor_set_velocity(wheels[0], 0);
   wb_motor_set_velocity(wheels[1], 0);
   wb_motor_set_velocity(wheels[2], 0);
 }
-
+///girar izquierda
 void turnLeft(WbDeviceTag *wheels) {
   wb_motor_set_velocity(wheels[0], 6);
   wb_motor_set_velocity(wheels[1], 6);
   wb_motor_set_velocity(wheels[2], 6);
 }
-
+///girar derecha
 void turnRight(WbDeviceTag *wheels) {
   wb_motor_set_velocity(wheels[0],-6);
   wb_motor_set_velocity(wheels[1],-6);
   wb_motor_set_velocity(wheels[2],-6);
 }
-
+///angulo
 double getAngleRobot(WbDeviceTag p_sen) {
   double angle_wheel1 = wb_position_sensor_get_value(p_sen);
   double angle;
@@ -113,23 +114,23 @@ int main(int argc, char **argv)
   short int ds_state, ds_state1, robot_state = Go;
   float angle;
   float dis1, dis2;
-   
+   //inicializamos y guardamos en un array
    WbDeviceTag wheels[3];
      wheels[0] = wb_robot_get_device("wheel1");
      wheels[1] = wb_robot_get_device("wheel2");
      wheels[2] = wb_robot_get_device("wheel3");
-     
+     ///las hacemos rotar infinitamente
    wb_motor_set_position (wheels[0], INFINITY);
    wb_motor_set_position (wheels[1], INFINITY);
    wb_motor_set_position (wheels[2], INFINITY);
-
+  ////obtenemos la info del sensor
    WbDeviceTag DSensor[2];
      DSensor[0] = wb_robot_get_device("DISTANCE");
      DSensor[1] = wb_robot_get_device("DISTANCE2");
-     
+     ////activamos el sensor
    wb_distance_sensor_enable(DSensor[0], TIME_STEP);
    wb_distance_sensor_enable(DSensor[1], TIME_STEP);
-   
+   ////obtenemos la info y activamos el sensor
    WbDeviceTag encoder = wb_robot_get_device("encoder1");
    wb_position_sensor_enable(encoder, TIME_STEP);
    
@@ -139,7 +140,7 @@ int main(int argc, char **argv)
   while (wb_robot_step(TIME_STEP) != -1) {
 
      key = wb_keyboard_get_key();
-     
+     ///para el teclado del robot hay que presionarlo
      if (key == G)
        state = Autonomous;
      else if (key == W)
@@ -151,7 +152,7 @@ int main(int argc, char **argv)
          state = right;
          initial_angle_wheel1 = wb_position_sensor_get_value(encoder);
      }
-       
+       ///Para el autonomo debe hacerlo todo por su cuenta
        
      if (state == Autonomous){
       if (robot_state == Go) {
@@ -164,7 +165,7 @@ int main(int argc, char **argv)
         printf ("dis2 : %lf\n",dis2);
         
         if (ds_state == FreeWay && ds_state1 == FreeWay) {
-          velocity = 6;
+          velocity = 8;///nueva velocidad para moverse automatico
           goRobot(wheels, velocity);
         } else if (ds_state == Obstacle && ds_state1 == FreeWay) {
             robot_state = TurnL;
@@ -195,7 +196,7 @@ int main(int argc, char **argv)
       }     
      } else {
          if (key == WB_KEYBOARD_UP){
-           velocity = 6;
+           velocity = 6;///velocidad para moverse de manera manual
            goRobot(wheels, velocity);
            angle = wb_position_sensor_get_value(encoder);
            printf("Angle: %lf\n", angle);
@@ -230,7 +231,7 @@ int main(int argc, char **argv)
          }
           dis1 = wb_distance_sensor_get_value(DSensor[0]);
           dis2 = wb_distance_sensor_get_value(DSensor[1]);
-          printf ("dis1 : %lf\n",dis1);
+          printf ("dis1 : %lf\n",dis1);///impresiones distance sensors
           printf ("dis2 : %lf\n",dis2);
        }
   }
