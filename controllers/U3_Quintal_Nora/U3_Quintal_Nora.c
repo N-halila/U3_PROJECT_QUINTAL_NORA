@@ -23,31 +23,40 @@
 
 
 enum {
-  Autonomous,
-  Manual,
   Go,
   Turn,
-  TurnL,
-  TurnR,
-  left,
-  right,
-  FreeWay,
-  Obstacle
+  GL,
+  GD,
+  I,
+  D,
+  Free,
+  Obstacle,
+  Auto,
+  Manual,
 };
 
-int  A = 65, S = 83, G = 71, W = 87;
+int  A = 65;
+int  S = 83; 
+int  G = 71; 
+int  W = 87;
 int state;
-double initial_angle_wheel1;
+double initial_wheel1_angle;
 
-int checkForObstacles(WbDeviceTag dis_S) {
+int revObstacles(WbDeviceTag dis_S) {
   double distance = wb_distance_sensor_get_value(dis_S);
 
   if (distance > OBSTACLE_DISTANCE)
-    return FreeWay;
+    return Free;
   else 
     return Obstacle;   
 }
 //////Functions for the robot
+///detener
+void stopRobot(WbDeviceTag *wheels) {
+  wb_motor_set_velocity(wheels[0], 0);
+  wb_motor_set_velocity(wheels[1], 0);
+  wb_motor_set_velocity(wheels[2], 0);
+}
 /////avanzar
 void goRobot(WbDeviceTag *wheels, double velocity) {
   wb_motor_set_velocity(wheels[0], 0);
@@ -66,24 +75,19 @@ void leftRobot(WbDeviceTag *wheels) {
   wb_motor_set_velocity(wheels[1], 0);
   wb_motor_set_velocity(wheels[2], 6);
 }
-////derecha
-void rightRobot(WbDeviceTag *wheels) {
-  wb_motor_set_velocity(wheels[0], 6);
-  wb_motor_set_velocity(wheels[1], 0);
-  wb_motor_set_velocity(wheels[2],-6);
-}
-///detener
-void stopRobot(WbDeviceTag *wheels) {
-  wb_motor_set_velocity(wheels[0], 0);
-  wb_motor_set_velocity(wheels[1], 0);
-  wb_motor_set_velocity(wheels[2], 0);
-}
 ///girar izquierda
 void turnLeft(WbDeviceTag *wheels) {
   wb_motor_set_velocity(wheels[0], 6);
   wb_motor_set_velocity(wheels[1], 6);
   wb_motor_set_velocity(wheels[2], 6);
 }
+////derecha
+void rightRobot(WbDeviceTag *wheels) {
+  wb_motor_set_velocity(wheels[0], 6);
+  wb_motor_set_velocity(wheels[1], 0);
+  wb_motor_set_velocity(wheels[2],-6);
+}
+
 ///girar derecha
 void turnRight(WbDeviceTag *wheels) {
   wb_motor_set_velocity(wheels[0],-6);
@@ -91,11 +95,11 @@ void turnRight(WbDeviceTag *wheels) {
   wb_motor_set_velocity(wheels[2],-6);
 }
 ///angulo
-double getAngleRobot(WbDeviceTag p_sen) {
+  double Robot_Angle(WbDeviceTag p_sen) {
   double angle_wheel1 = wb_position_sensor_get_value(p_sen);
   double angle;
 
-  angle = fabs(angle_wheel1 - initial_angle_wheel1);
+  angle = fabs(angle_wheel1 - initial_wheel1_angle);
 
   return angle;
 }
@@ -109,7 +113,7 @@ int main(int argc, char **argv)
   wb_robot_init();
   wb_keyboard_enable(TIME_STEP);
   
-  int key;
+  int key_letter;
   float velocity;
   short int ds_state, ds_state1, robot_state = Go;
   float angle;
@@ -139,89 +143,89 @@ int main(int argc, char **argv)
    */
   while (wb_robot_step(TIME_STEP) != -1) {
 
-     key = wb_keyboard_get_key();
+     key_letter = wb_keyboard_get_key();
      ///para el teclado del robot hay que presionarlo
-     if (key == G)
-       state = Autonomous;
-     else if (key == W)
+     if (key_letter == G)
+       state = Auto;
+     else if (key_letter == W)
        state = Manual;
-     else if (key == S){
-       state = left;
-       initial_angle_wheel1 = wb_position_sensor_get_value(encoder);
-     } else if (key == A){
-         state = right;
-         initial_angle_wheel1 = wb_position_sensor_get_value(encoder);
+     else if (key_letter == S){
+       state = I;
+       initial_wheel1_angle = wb_position_sensor_get_value(encoder);
+     } else if (key_letter == A){
+         state = D;
+         initial_wheel1_angle= wb_position_sensor_get_value(encoder);
      }
        ///Para el autonomo debe hacerlo todo por su cuenta
        
-     if (state == Autonomous){
+     if (state == Auto){
       if (robot_state == Go) {
-        ds_state = checkForObstacles(DSensor[0]);
-        ds_state1 = checkForObstacles(DSensor[1]);
+        ds_state = revObstacles(DSensor[0]);
+        ds_state1 = revObstacles(DSensor[1]);
         
         dis1 = wb_distance_sensor_get_value(DSensor[0]);
         dis2 = wb_distance_sensor_get_value(DSensor[1]);
         printf ("dis1 : %lf\n",dis1);
         printf ("dis2 : %lf\n",dis2);
         
-        if (ds_state == FreeWay && ds_state1 == FreeWay) {
+        if (ds_state == Free && ds_state1 == Free) {
           velocity = 8;///nueva velocidad para moverse automatico
           goRobot(wheels, velocity);
-        } else if (ds_state == Obstacle && ds_state1 == FreeWay) {
-            robot_state = TurnL;
+        } else if (ds_state == Obstacle && ds_state1 == Free) {
+            robot_state = GL;
             stopRobot(wheels);
-        } else if (ds_state == FreeWay && ds_state1 == Obstacle) {
-            robot_state = TurnR;
+        } else if (ds_state == Free && ds_state1 == Obstacle) 
+            robot_state = GD;
             stopRobot(wheels);
         } else if (ds_state == Obstacle && ds_state1 == Obstacle) {
-            robot_state = TurnL;
+            robot_state = GL;
             stopRobot(wheels);
         }
-      } else if (robot_state == TurnL) {
+      } else if (robot_state == GL) {
           turnLeft(wheels);
-          ds_state = checkForObstacles(DSensor[0]);
-          ds_state1 = checkForObstacles(DSensor[1]);
-          if (ds_state == FreeWay && ds_state1 == FreeWay) {
+          ds_state = revObstacles(DSensor[0]);
+          ds_state1 = revObstacles(DSensor[1]);
+          if (ds_state == Free && ds_state1 == Free) {
             robot_state = Go;
             stopRobot(wheels);
           }
-      } else if (robot_state == TurnR) {
+      } else if (robot_state == GD) {
           turnRight(wheels);
-          ds_state = checkForObstacles(DSensor[0]);
-          ds_state1 = checkForObstacles(DSensor[1]);
-          if (ds_state1 == FreeWay && ds_state == FreeWay) {
+          ds_state = revObstacles(DSensor[0]);
+          ds_state1 = revObstacles(DSensor[1]);
+          if (ds_state1 == Free && ds_state == Free) {
             robot_state = Go;
             stopRobot(wheels);
           }
       }     
-     } else {
-         if (key == WB_KEYBOARD_UP){
+      else  {
+         if (key_letter == WB_KEYBOARD_UP){
            velocity = 6;///velocidad para moverse de manera manual
            goRobot(wheels, velocity);
            angle = wb_position_sensor_get_value(encoder);
            printf("Angle: %lf\n", angle);
-         } else if (key == WB_KEYBOARD_DOWN){
+         } else if (key_letter== WB_KEYBOARD_DOWN){
              backRobot(wheels);
              angle = wb_position_sensor_get_value(encoder);
              printf("Angle: %lf\n", angle);
-         } else if (key == WB_KEYBOARD_LEFT){
+         } else if (key_letter == WB_KEYBOARD_LEFT){
              leftRobot(wheels);
              angle = wb_position_sensor_get_value(encoder);
              printf("Angle: %lf\n", angle);
-         } else if (key == WB_KEYBOARD_RIGHT){
+         } else if (key_letter == WB_KEYBOARD_RIGHT){
              rightRobot(wheels);
              angle = wb_position_sensor_get_value(encoder);
              printf("Angle: %lf\n", angle);
-         } else if (state == left){
+         } else if (state == I){
              turnLeft(wheels);
-             angle = getAngleRobot(encoder);
+             angle = Robot_Angle(encoder);
              if (angle >= 0.4*PI) {
                robot_state = Go;
                stopRobot(wheels);
              }
-         } else if (state == right){
+         } else if (state == D){
              turnRight(wheels);
-             angle = getAngleRobot(encoder);
+             angle = Robot_Angle(encoder);
              if (angle >= 0.4*PI) {
                robot_state = Go;
                stopRobot(wheels);
